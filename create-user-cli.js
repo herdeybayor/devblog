@@ -1,5 +1,5 @@
 //this file is used to create admin user using CLI
-
+require("dotenv").config();
 const CryptoJS = require("crypto-js");
 const readline = require("readline");
 

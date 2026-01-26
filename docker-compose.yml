@@ -1,0 +1,42 @@
+name: devblog-app
+
+services:
+  web: # -> service name
+    build: .
+    ports:
+      - "8000:3000"
+    env_file:
+      - docker.env
+    volumes:
+      - web-images:/app/public/images
+    depends_on:
+      - mongo
+    restart: always
+
+  mongo:
+    image: mongo:4.0
+    restart: always
+    volumes:
+      - mongo-data:/data/db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
+
+  mongo-express:
+    image: mongo-express
+    restart: always
+    ports:
+      - 8081:8081
+    depends_on:
+      - mongo
+    environment:
+      ME_CONFIG_MONGODB_URL: mongodb://root:example@mongo:27017/
+      ME_CONFIG_BASICAUTH_ENABLED: true
+      ME_CONFIG_BASICAUTH_USERNAME: admin
+      ME_CONFIG_BASICAUTH_PASSWORD: admin
+
+volumes:
+  mongo-data:
+    driver: local
+  web-images:
+    driver: local
