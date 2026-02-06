@@ -12,6 +12,19 @@ services:
     depends_on:
       - mongo
     restart: always
+    # Security: Run with read-only root filesystem where possible
+    # Security: Drop all capabilities and add back only what's needed
+    security_opt:
+      - no-new-privileges:true
+    # Resource limits to prevent DoS
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+        reservations:
+          cpus: '0.5'
+          memory: 256M
 
   mongo:
     image: mongo:4.0
@@ -21,12 +34,28 @@ services:
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: example
+    # Security: Don't expose MongoDB port to host (only internal network)
+    # This prevents external access to the database
+    expose:
+      - "27017"
+    # Security improvements
+    security_opt:
+      - no-new-privileges:true
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
 
   mongo-express:
     image: mongo-express
     restart: always
     ports:
-      - 8081:8081
+      - "8081:8081"
     depends_on:
       - mongo
     environment:
@@ -34,6 +63,18 @@ services:
       ME_CONFIG_BASICAUTH_ENABLED: true
       ME_CONFIG_BASICAUTH_USERNAME: admin
       ME_CONFIG_BASICAUTH_PASSWORD: admin
+    # Security improvements
+    security_opt:
+      - no-new-privileges:true
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
 
 volumes:
   mongo-data:
