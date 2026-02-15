@@ -1,4 +1,4 @@
-# Staging Environment Outputs
+# Production Environment Outputs
 
 # VPC Outputs
 output "vpc_id" {
@@ -22,15 +22,31 @@ output "private_subnet_ids" {
   value       = module.networking.private_subnet_ids
 }
 
+output "availability_zones" {
+  description = "List of availability zones"
+  value       = module.networking.public_subnet_availability_zones
+}
+
 # NAT Gateway Outputs
 output "nat_gateway_ids" {
-  description = "List of NAT Gateway IDs"
+  description = "List of NAT Gateway IDs (HA setup)"
   value       = module.networking.nat_gateway_ids
 }
 
 output "nat_eip_public_ips" {
   description = "NAT Gateway Elastic IPs"
   value       = module.networking.nat_eip_public_ips
+}
+
+# VPC Flow Logs
+output "flow_log_id" {
+  description = "VPC Flow Log ID"
+  value       = module.networking.flow_log_id
+}
+
+output "flow_log_cloudwatch_log_group" {
+  description = "CloudWatch Log Group for VPC Flow Logs"
+  value       = module.networking.flow_log_cloudwatch_log_group
 }
 
 # Security Group Outputs
@@ -60,6 +76,11 @@ output "instance_public_dns" {
   value       = module.compute.instance_public_dns
 }
 
+output "instance_availability_zone" {
+  description = "Availability zone of the instance"
+  value       = module.compute.availability_zone
+}
+
 # SSH Connection
 output "ssh_command" {
   description = "SSH command to connect to the instance"
@@ -76,4 +97,10 @@ output "ami_id" {
 output "key_pair_name" {
   description = "Name of the SSH key pair"
   value       = module.compute.key_pair_name
+}
+
+# Monitoring
+output "cloudwatch_log_group" {
+  description = "CloudWatch Log Group for VPC Flow Logs (for monitoring queries)"
+  value       = module.networking.flow_log_cloudwatch_log_group
 }

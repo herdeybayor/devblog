@@ -1,5 +1,5 @@
-# Staging Environment - Multi-AZ with Private Subnets and Single NAT
-# 2 AZs for redundancy, cost-optimized with single NAT gateway
+# Production Environment - High Availability Multi-AZ Setup
+# 3 AZs for maximum redundancy, HA NAT gateways, VPC Flow Logs
 
 # Networking Module
 module "networking" {
@@ -7,18 +7,29 @@ module "networking" {
 
   project_name       = var.project_name
   environment        = var.environment
-  vpc_cidr           = "10.1.0.0/16"
-  availability_zones = ["us-east-1a", "us-east-1b"]
+  vpc_cidr           = "10.2.0.0/16"
+  availability_zones = ["us-east-1a", "us-east-1b", "us-east-1c"]
 
-  public_subnet_cidrs  = ["10.1.1.0/24", "10.1.2.0/24"]
-  private_subnet_cidrs = ["10.1.11.0/24", "10.1.12.0/24"]
+  public_subnet_cidrs = [
+    "10.2.1.0/24",
+    "10.2.2.0/24",
+    "10.2.3.0/24"
+  ]
 
-  # Cost optimization: single NAT gateway
+  private_subnet_cidrs = [
+    "10.2.11.0/24",
+    "10.2.12.0/24",
+    "10.2.13.0/24"
+  ]
+
+  # Production: HA NAT gateway (one per AZ)
   enable_nat_gateway = true
-  single_nat_gateway = true
+  single_nat_gateway = false
 
-  # Flow Logs disabled for staging (cost optimization)
-  enable_flow_logs = false
+  # Security monitoring with VPC Flow Logs
+  enable_flow_logs         = true
+  flow_logs_retention_days = 30
+  flow_logs_traffic_type   = "ALL"
 
   tags = var.common_tags
 }
@@ -33,11 +44,11 @@ module "security" {
 
   security_group_name = "web-sg"
 
-  # Predefined rules
+  # Predefined rules with strict SSH access
   enable_ssh_rule   = true
-  ssh_cidr_blocks   = var.ssh_allowed_cidrs
+  ssh_cidr_blocks   = var.ssh_allowed_cidrs  # MUST be set, validated
   enable_http_rule  = true
-  enable_https_rule = true  # HTTPS for staging
+  enable_https_rule = true
 
   tags = var.common_tags
 }
@@ -71,14 +82,14 @@ module "compute" {
   ]
   ami_owners = ["099720109477"] # Canonical
 
-  # Storage Configuration - Larger for staging
+  # Storage Configuration - Production sizing
   root_volume_type      = "gp3"
-  root_volume_size      = 30
+  root_volume_size      = 50
   root_volume_encrypted = true
 
   # Security Best Practices
   require_imdsv2             = true
-  enable_detailed_monitoring = false
+  enable_detailed_monitoring = true  # CloudWatch detailed monitoring
 
   tags = var.common_tags
 }

@@ -1,4 +1,4 @@
-# Staging Environment Variables
+# Production Environment Variables
 
 variable "aws_region" {
   description = "The AWS region to deploy the resources"
@@ -9,7 +9,7 @@ variable "aws_region" {
 variable "instance_type" {
   description = "The type of instance to launch"
   type        = string
-  default     = "t3.micro"
+  default     = "t3.small"
 }
 
 variable "project_name" {
@@ -21,16 +21,22 @@ variable "project_name" {
 variable "environment" {
   description = "The environment to deploy the resources"
   type        = string
-  default     = "staging"
+  default     = "prod"
 }
 
 variable "ssh_allowed_cidrs" {
-  description = "CIDR blocks allowed for SSH access (set to your IP for security)"
+  description = "CIDR blocks for SSH - MUST be your office/VPN IP, NOT 0.0.0.0/0"
   type        = list(string)
-  default     = ["0.0.0.0/0"]  # CHANGE THIS: Get your IP with 'curl ifconfig.me'
 
-  # Note: The security module will validate this - 0.0.0.0/0 will cause an error
-  # Run: ssh_allowed_cidrs = ["$(curl -s ifconfig.me)/32"]
+  validation {
+    condition     = !contains(var.ssh_allowed_cidrs, "0.0.0.0/0")
+    error_message = "SSH cannot be open to 0.0.0.0/0 in production. Set to your office IP (get it with 'curl ifconfig.me')."
+  }
+
+  validation {
+    condition     = length(var.ssh_allowed_cidrs) > 0
+    error_message = "You must specify at least one CIDR block for SSH access."
+  }
 }
 
 variable "common_tags" {
@@ -38,8 +44,9 @@ variable "common_tags" {
   type        = map(string)
   default = {
     Project     = "DevBlog"
-    Environment = "staging"
+    Environment = "production"
     ManagedBy   = "terraform"
-    CostCenter  = "staging"
+    Compliance  = "required"
+    CostCenter  = "production"
   }
 }
