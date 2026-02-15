@@ -2,6 +2,7 @@ module "networking" {
   source = "../../modules/networking"
   project_name = var.project_name
   environment = var.environment
+  map_public_ip_on_launch = false
 }
 
 # Fetch the latest Ubuntu 24.04 LTS AMI
